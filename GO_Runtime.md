@@ -42,16 +42,17 @@ RET
 
 ## About P
 ### Definition
-P是process的头文字, 代表M运行G所需要的资源.  
-一些讲解协程的文章把P理解为cpu核心, 其实这是错误的.  
-虽然P的数量默认等于cpu核心数, 但可以通过环境变量`GOMAXPROC`修改, 在实际运行时P跟cpu核心并无任何关联.
 
-P也可以理解为控制go代码的并行度的机制,  
-如果P的数量等于1, 代表当前最多只能有一个线程(M)执行go代码,  
-如果P的数量等于2, 代表当前最多只能有两个线程(M)执行go代码.  
-执行原生代码的线程数量不受P控制.
+P 是 process 的头文字，代表 M 运行 G 所需要的资源.  
+一些讲解协程的文章把 P 理解为 cpu 核心，其实这是错误的.  
+虽然 P 的数量默认等于 cpu 核心数，但可以通过环境变量  `GOMAXPROC`  修改，在实际运行时 P 跟 cpu 核心并无任何关联.
 
-因为同一时间只有一个线程(M)可以拥有P, P中的数据都是锁自由(lock free)的, 读写这些数据的效率会非常的高.
+P 也可以理解为控制 go 代码的并行度的机制，  
+如果 P 的数量等于 1, 代表当前最多只能有一个线程 (M) 执行 go 代码，  
+如果 P 的数量等于 2, 代表当前最多只能有两个线程 (M) 执行 go 代码.  
+执行原生代码的线程数量不受 P 控制.
+
+因为同一时间只有一个线程 (M) 可以拥有 P, P 中的数据都是锁自由 (lock free) 的，读写这些数据的效率会非常的高.
 
 ### NewP
 
@@ -122,14 +123,15 @@ func GOMAXPROCS(n int) int {
 ## About G (Goroutine)
 
 ### Definition
-G是goroutine的头文字, goroutine可以解释为受管理的轻量线程, goroutine使用`go`关键词创建.
 
-举例来说,  `func main() { go other() }`, 这段代码创建了两个goroutine,  
-一个是main, 另一个是other, 注意main本身也是一个goroutine.
+G 是 goroutine 的头文字，goroutine 可以解释为受管理的轻量线程，goroutine 使用  `go`  关键词创建.
 
-goroutine的新建, 休眠, 恢复, 停止都受到go运行时的管理.  
-goroutine执行异步操作时会进入休眠状态, 待操作完成后再恢复, 无需占用系统线程,  
-goroutine新建或恢复时会添加到运行队列, 等待M取出并运行.
+举例来说，`func main() { go other() }`, 这段代码创建了两个 goroutine,  
+一个是 main, 另一个是 other, 注意 main 本身也是一个 goroutine.
+
+goroutine 的新建，休眠，恢复，停止都受到 go 运行时的管理.  
+goroutine 执行异步操作时会进入休眠状态，待操作完成后再恢复，无需占用系统线程，  
+goroutine 新建或恢复时会添加到运行队列，等待 M 取出并运行.
 
 ### NewG
 在用户代码里一般这么写:
@@ -161,21 +163,21 @@ startm --> |no idle m| setm[set p into m's nextp]
 
 ### schedule() & findrunnable()
 
-Goroutine调度是在_P_中进行，每当runtime需要进行调度时，会调用schedule()函数， 该函数在proc.go文件中定义。
 
-schedule()函数首先调用runqget()从当前_P_的队列中取一个可以执行的_G_。 如果队列为空，继续调用findrunnable()函数。findrunnable()函数会按照以下顺序来取得_G_：
+Goroutine 调度是在_P_中进行，每当 runtime 需要进行调度时，会调用 schedule () 函数， 该函数在 proc.go 文件中定义。
 
-1.  调用runqget()从当前_P_的队列中取_G_（和schedule()中的调用相同）；
-2.  调用globrunqget()从全局队列中取可执行的_G_；
-3.  调用netpoll()取异步调用结束的_G_，该次调用为`非阻塞`调用，直接返回；
-4.  调用runqsteal()从其他_P_的队列中“偷”。
+schedule () 函数首先调用 runqget () 从当前_P_的队列中取一个可以执行的_G_。 如果队列为空，继续调用 findrunnable () 函数。findrunnable () 函数会按照以下顺序来取得_G_：
 
+1.  调用 runqget () 从当前_P_的队列中取_G_（和 schedule () 中的调用相同）；
+2.  调用 globrunqget () 从全局队列中取可执行的_G_；
+3.  调用 netpoll () 取异步调用结束的_G_，该次调用为`非阻塞`调用，直接返回；
+4.  调用 runqsteal () 从其他_P_的队列中 “偷”。
 
 如果以上四步都没能获取成功，就继续执行一些低优先级的工作：
 
 1.  如果处于垃圾回收标记阶段，就进行垃圾回收的标记工作；
-2.  再次调用globrunqget()从全局队列中取可执行的_G_；
-3.  再次调用netpoll()取异步调用结束的_G_，该次调用为`阻塞`调用。
+2.  再次调用 globrunqget () 从全局队列中取可执行的_G_；
+3.  再次调用 netpoll () 取异步调用结束的_G_，该次调用为`阻塞`调用。
 
 Schedule function 內部邏輯如下圖
 ```mermaid
@@ -205,11 +207,12 @@ goexit0[goexit0 <br> - goexit continuation on g0] --> schedule
 ### Release g's resource
 
 干了几件事：
-1.  G的状态变为_GDead，如果是系统G则更新全局计数器。
-2.  重置G身上一系列的属性变量。
-3.  解除M和G的互相引用关系。
-4.  放置在本地P或全局的free goroutine队列。
-5.  调度，寻找下一个可运行的goroutine。
+
+1.  G 的状态变为_GDead，如果是系统 G 则更新全局计数器。
+2.  重置 G 身上一系列的属性变量。
+3.  解除 M 和 G 的互相引用关系。
+4.  放置在本地 P 或全局的 free goroutine 队列。
+5.  调度，寻找下一个可运行的 goroutine。
 
 gostartcall function 有將 goexit addr 放至 goroutine 函数 stack sp 的位置。这样做的目的是为了在执行完任何 goroutine 的函数时，通过 RET 指令，都能从栈顶把 sp 保存的 goexit 的指令 pop 到 pc 寄存器，效果相当于任何 goroutine 执行函数执行完之后，都会去执行 runtime.goexit，完成一些清理工作后再进入 schedule。
 
@@ -219,22 +222,22 @@ gostartcall function 有將 goexit addr 放至 goroutine 函数 stack sp 的位�
 
 ## About M
 ### Definition
-M是 machine的头文字, 在当前版本的golang中**等同于系统线程**.  
-M可以运行两种代码:
 
--   go代码, 即 goroutine, M运行go代码需要一个P
--   原生代码, 例如阻塞的syscall, M运行原生代码不需要P
+M 是 machine 的头文字，在当前版本的 golang 中**等同于系统线程**.  
+M 可以运行两种代码:
 
-M会从运行队列中取出G, 然后运行G, 如果G运行完毕或者进入休眠状态, 则从运行队列中取出下一个G运行, 周而复始.  
-有时候G需要调用一些无法避免阻塞的原生代码, 这时M会释放持有的P并进入阻塞状态, 其他M会取得这个P并继续运行队列中的G.  
-go需要保证有足够的M可以运行G, 不让CPU闲着, 也需要保证M的数量不能过多.
+-   go 代码，即 goroutine, M 运行 go 代码需要一个 P
+-   原生代码，例如阻塞的 syscall, M 运行原生代码不需要 P
+
+M 会从运行队列中取出 G, 然后运行 G, 如果 G 运行完毕或者进入休眠状态，则从运行队列中取出下一个 G 运行，周而复始.  
+有时候 G 需要调用一些无法避免阻塞的原生代码，这时 M 会释放持有的 P 并进入阻塞状态，其他 M 会取得这个 P 并继续运行队列中的 G.  
+go 需要保证有足够的 M 可以运行 G, 不让 CPU 闲着，也需要保证 M 的数量不能过多.
 
 #### 主線程 m0
 
-在 runtime 中有三种线程，一种是主线程，一种是用来跑 sysmon 的线程，一种是普通的用户线程。主线程在 runtime 由对应的全局变量: `runtime.m0` 来表示。用户线程就是普通的线程了，和 p 绑定，执行 g 中的任务。虽然说是有三种，实际上前两种线程整个 runtime 就只有一个实例。用户线程才会有很多实例。
+在 runtime 中有三种线程，一种是主线程，一种是用来跑 sysmon 的线程，一种是普通的用户线程。主线程在 runtime 由对应的全局变量:  `runtime.m0`  来表示。用户线程就是普通的线程了，和 p 绑定，执行 g 中的任务。虽然说是有三种，实际上前两种线程整个 runtime 就只有一个实例。用户线程才会有很多实例。
 
-
-主线程中用来跑 `runtime.main`，流程线性执行，没有跳转:
+主线程中用来跑  `runtime.main`，流程线性执行，没有跳转:
 
 ```mermaid
 graph TD
@@ -342,17 +345,17 @@ nog:
 
 #### TLS
 
-TLS的全称是[Thread-local storage](https://en.wikipedia.org/wiki/Thread-local_storage), 代表每个线程的中的本地数据.
+TLS 的全称是  [Thread-local storage](https://en.wikipedia.org/wiki/Thread-local_storage), 代表每个线程的中的本地数据.
 
-例如标准c中的errno就是一个典型的TLS变量, 每个线程都有一个独自的errno, 写入它不会干扰到其他线程中的值.
+例如标准 c 中的 errno 就是一个典型的 TLS 变量，每个线程都有一个独自的 errno, 写入它不会干扰到其他线程中的值.
 
-go在实现协程时非常依赖TLS机制, 会用于获取系统线程中当前的G和G所属的M的实例.
+go 在实现协程时非常依赖 TLS 机制，会用于获取系统线程中当前的 G 和 G 所属的 M 的实例.
 
-因为go并不使用glibc, 操作TLS会使用系统原生的接口, 以linux x64为例,
+因为 go 并不使用 glibc, 操作 TLS 会使用系统原生的接口，以 linux x64 为例，
 
-go在新建M时会调用 [SYSCALL ARCH_SET_FS](http://man7.org/linux/man-pages/man2/arch_prctl.2.html) 这个syscall设置FS寄存器的值为M.tls的地址,
+go 在新建 M 时会调用  [SYSCALL ARCH_SET_FS](http://man7.org/linux/man-pages/man2/arch_prctl.2.html)  这个 syscall 设置 FS 寄存器的值为 M.tls 的地址，
 
-运行中每个M的FS寄存器都会指向它们对应的M实例的tls, linux内核调度线程时FS寄存器会跟着线程一起切换,
+运行中每个 M 的 FS 寄存器都会指向它们对应的 M 实例的 tls, linux 内核调度线程时 FS 寄存器会跟着线程一起切换，
 
 ---
 ```
@@ -380,27 +383,27 @@ func main() {
 }
 
 ```
-- 程序启动时会先创建一个 g0 & m0, 指向的是main,实际是 runtime.main 而不是main.main
-- 图中的虚线指的是G待运行或者开始运行的地址, 不是当前运行的地址.
+-   程序启动时会先创建一个 g0 & m0, 指向的是 main, 实际是 runtime.main 而不是 main.main
+-   图中的虚线指的是 G 待运行或者开始运行的地址，不是当前运行的地址.
 
 
 ![enter image description here](https://s3-ap-northeast-1.amazonaws.com/steven-dev/presentation/golang/schedule/1.png)
 
-- M会取得这个G并运行:
+- M 会取得这个 G 并运行:
 ![enter image description here](https://s3-ap-northeast-1.amazonaws.com/steven-dev/presentation/golang/schedule/2.png)
-- 这时main会创建一个新的channel, 并启动两个新的G:
+- 这时 main 会创建一个新的 channel, 并启动两个新的 G:
 ![enter image description here](https://s3-ap-northeast-1.amazonaws.com/steven-dev/presentation/golang/schedule/3.png)
-- 接下来`G: main`会从channel获取数据, 因为获取不到, G会**保存状态**并变为等待中(_Gwaiting)并添加到channel的队列:
+- 接下来 `G: main` 会从 channel 获取数据，因为获取不到，G 会**保存状态**并变为等待中 (_Gwaiting) 并添加到 channel 的队列:
 ![enter image description here](https://s3-ap-northeast-1.amazonaws.com/steven-dev/presentation/golang/schedule/4.png)
-- 因为`G: main`保存了运行状态, 下次运行时将会从`_ = <- c`继续运行.  
-接下来M会从运行队列获取到`G: printNumber`并运行:
+- 因为 `G: main` 保存了运行状态，下次运行时将会从`_ = <- c` 继续运行.  
+接下来 M 会从运行队列获取到 `G: printNumber` 并运行:
 ![enter image description here](https://s3-ap-northeast-1.amazonaws.com/steven-dev/presentation/golang/schedule/5.png)
-- printNumber会打印数字, 完成后向channel写数据,  
-写数据时发现channel中有正在等待的G, 会把数据交给这个G, 把G变为待运行(_Grunnable)并重新放入运行队列:
+- printNumber 会打印数字，完成后向 channel 写数据，  
+写数据时发现 channel 中有正在等待的 G, 会把数据交给这个 G, 把 G 变为待运行 (_Grunnable) 并重新放入运行队列:
 ![enter image description here](https://s3-ap-northeast-1.amazonaws.com/steven-dev/presentation/golang/schedule/6.png)
-- 接下来M会运行下一个`G: printNumber`, 因为创建channel时指定了大小为3的缓冲区, 可以直接把数据写入缓冲区而无需等待:
+- 接下来 M 会运行下一个 `G: printNumber`, 因为创建 channel 时指定了大小为 3 的缓冲区，可以直接把数据写入缓冲区而无需等待:
 ![enter image description here](https://s3-ap-northeast-1.amazonaws.com/steven-dev/presentation/golang/schedule/7.png)
-- 然后printNumber运行完毕, 运行队列中就只剩下`G: main`了:
+- 然后 printNumber 运行完毕，运行队列中就只剩下 `G: main` 了:
 ![enter image description here](https://s3-ap-northeast-1.amazonaws.com/steven-dev/presentation/golang/schedule/8.png)
-- 最后M把`G: main`取出来运行, 会从上次中断的位置`_ <- c`继续运行:
+- 最后 M 把 `G: main` 取出来运行，会从上次中断的位置`_ <- c` 继续运行:
 ![enter image description here](https://s3-ap-northeast-1.amazonaws.com/steven-dev/presentation/golang/schedule/9.png)
